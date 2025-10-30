@@ -1,0 +1,3758 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Azure Databricks REST API",
+    "version": "2.0",
+    "description": "OpenAPI specification for Azure Databricks REST API. Supports workspace-level operations including clusters, jobs, workspace management, and command execution.",
+    "contact": {
+      "name": "Azure Databricks Documentation",
+      "url": "https://learn.microsoft.com/en-us/azure/databricks/"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://{workspace-instance}.azuredatabricks.net",
+      "description": "Azure Databricks Workspace",
+      "variables": {
+        "workspace-instance": {
+          "default": "adb-1234567890123456",
+          "description": "Your Azure Databricks workspace instance name"
+        }
+      }
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    },
+    {
+      "personalAccessToken": []
+    }
+  ],
+  "paths": {
+    "/api/2.0/clusters/list": {
+      "get": {
+        "operationId": "listClusters",
+        "summary": "List all clusters",
+        "description": "Returns a list of all clusters in the workspace",
+        "tags": ["Clusters"],
+        "responses": {
+          "200": {
+            "description": "List of clusters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "clusters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ClusterInfo"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
+          }
+        }
+      }
+    },
+    "/api/2.0/clusters/get": {
+      "get": {
+        "operationId": "getCluster",
+        "summary": "Get cluster information",
+        "description": "Retrieves the information for a cluster given its identifier",
+        "tags": ["Clusters"],
+        "parameters": [
+          {
+            "name": "cluster_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The canonical identifier for the cluster"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cluster information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClusterInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/clusters/create": {
+      "post": {
+        "operationId": "createCluster",
+        "summary": "Create a new cluster",
+        "description": "Creates a new cluster with the specified configuration",
+        "tags": ["Clusters"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClusterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cluster created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cluster_id": {
+                      "type": "string",
+                      "description": "The canonical identifier for the newly created cluster"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/clusters/start": {
+      "post": {
+        "operationId": "startCluster",
+        "summary": "Start a cluster",
+        "description": "Starts a terminated cluster given its ID",
+        "tags": ["Clusters"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["cluster_id"],
+                "properties": {
+                  "cluster_id": {
+                    "type": "string",
+                    "description": "The cluster to be started"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cluster start initiated"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/clusters/delete": {
+      "post": {
+        "operationId": "deleteCluster",
+        "summary": "Terminate a cluster",
+        "description": "Terminates a cluster given its ID",
+        "tags": ["Clusters"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["cluster_id"],
+                "properties": {
+                  "cluster_id": {
+                    "type": "string",
+                    "description": "The cluster to be terminated"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cluster termination initiated"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/jobs/list": {
+      "get": {
+        "operationId": "listJobs",
+        "summary": "List all jobs",
+        "description": "Lists all jobs in the workspace",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            },
+            "description": "The number of jobs to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            },
+            "description": "The offset of the first job to return"
+          },
+          {
+            "name": "expand_tasks",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Whether to include task and cluster details in the response"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Job"
+                      }
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/jobs/get": {
+      "get": {
+        "operationId": "getJob",
+        "summary": "Get job information",
+        "description": "Retrieves information about a single job",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "The canonical identifier of the job to retrieve information about"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/jobs/create": {
+      "post": {
+        "operationId": "createJob",
+        "summary": "Create a new job",
+        "description": "Creates a new job with the specified configuration",
+        "tags": ["Jobs"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateJobRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job_id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "description": "The canonical identifier for the newly created job"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/jobs/run-now": {
+      "post": {
+        "operationId": "runJobNow",
+        "summary": "Run a job now",
+        "description": "Runs a job with the specified parameters",
+        "tags": ["Jobs"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["job_id"],
+                "properties": {
+                  "job_id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "The ID of the job to run"
+                  },
+                  "notebook_params": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Parameters to pass to the notebook"
+                  },
+                  "python_params": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Parameters to pass to Python tasks"
+                  },
+                  "jar_params": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Parameters to pass to JAR tasks"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job run started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "run_id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "description": "The canonical identifier of the run"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/jobs/runs/get": {
+      "get": {
+        "operationId": "getJobRun",
+        "summary": "Get job run information",
+        "description": "Retrieves the metadata of a run",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "The canonical identifier of the run for which to retrieve the metadata"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job run information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/workspace/list": {
+      "get": {
+        "operationId": "listWorkspaceObjects",
+        "summary": "List workspace objects",
+        "description": "Lists the contents of a directory in the workspace",
+        "tags": ["Workspace"],
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The absolute path of the notebook or directory"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of workspace objects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "objects": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkspaceObject"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/workspace/export": {
+      "get": {
+        "operationId": "exportWorkspaceObject",
+        "summary": "Export a workspace object",
+        "description": "Exports a notebook or directory from the workspace",
+        "tags": ["Workspace"],
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The absolute path of the object to export"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["SOURCE", "HTML", "JUPYTER", "DBC"],
+              "default": "SOURCE"
+            },
+            "description": "The format to export the notebook or directory"
+          },
+          {
+            "name": "direct_download",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Whether to trigger a direct download"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exported workspace object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "string",
+                      "description": "Base64-encoded content"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/workspace/import": {
+      "post": {
+        "operationId": "importWorkspaceObject",
+        "summary": "Import a workspace object",
+        "description": "Imports a notebook or directory into the workspace",
+        "tags": ["Workspace"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["path", "content"],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "The absolute path of the object to import"
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": ["SOURCE", "HTML", "JUPYTER", "DBC"],
+                    "default": "SOURCE",
+                    "description": "The format of the imported file"
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": ["SCALA", "PYTHON", "SQL", "R"],
+                    "description": "The language of the notebook (required for SOURCE format)"
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": "Base64-encoded content to import"
+                  },
+                  "overwrite": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to overwrite existing object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace object imported successfully"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/workspace/delete": {
+      "post": {
+        "operationId": "deleteWorkspaceObject",
+        "summary": "Delete a workspace object",
+        "description": "Deletes a notebook or directory from the workspace",
+        "tags": ["Workspace"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["path"],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "The absolute path of the notebook or directory"
+                  },
+                  "recursive": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to delete the object recursively"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace object deleted successfully"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/dbfs/list": {
+      "get": {
+        "operationId": "listDbfsFiles",
+        "summary": "List DBFS files",
+        "description": "Lists the contents of a directory in DBFS",
+        "tags": ["DBFS"],
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The path to list"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "is_dir": {
+                            "type": "boolean"
+                          },
+                          "file_size": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/dbfs/read": {
+      "get": {
+        "operationId": "readDbfsFile",
+        "summary": "Read DBFS file",
+        "description": "Reads contents from a file in DBFS",
+        "tags": ["DBFS"],
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The path of the file to read"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The offset to read from"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The number of bytes to read"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File contents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bytes_read": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "string",
+                      "description": "Base64 encoded file contents"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/dbfs/put": {
+      "post": {
+        "operationId": "writeDbfsFile",
+        "summary": "Write to DBFS file",
+        "description": "Writes data to a file in DBFS",
+        "tags": ["DBFS"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["path", "contents"],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "contents": {
+                    "type": "string",
+                    "description": "Base64 encoded contents"
+                  },
+                  "overwrite": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File written successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/dbfs/delete": {
+      "post": {
+        "operationId": "deleteDbfsFile",
+        "summary": "Delete DBFS file",
+        "description": "Deletes a file or directory from DBFS",
+        "tags": ["DBFS"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["path"],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "recursive": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/dbfs/mkdirs": {
+      "post": {
+        "operationId": "createDbfsDirectory",
+        "summary": "Create DBFS directory",
+        "description": "Creates a directory in DBFS",
+        "tags": ["DBFS"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["path"],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Directory created successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/secrets/scopes/list": {
+      "get": {
+        "operationId": "listSecretScopes",
+        "summary": "List secret scopes",
+        "description": "Lists all secret scopes available in the workspace",
+        "tags": ["Secrets"],
+        "responses": {
+          "200": {
+            "description": "List of secret scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "backend_type": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/secrets/scopes/create": {
+      "post": {
+        "operationId": "createSecretScope",
+        "summary": "Create secret scope",
+        "description": "Creates a new secret scope",
+        "tags": ["Secrets"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["scope"],
+                "properties": {
+                  "scope": {
+                    "type": "string"
+                  },
+                  "initial_manage_principal": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret scope created"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/secrets/scopes/delete": {
+      "post": {
+        "operationId": "deleteSecretScope",
+        "summary": "Delete secret scope",
+        "description": "Deletes a secret scope",
+        "tags": ["Secrets"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["scope"],
+                "properties": {
+                  "scope": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret scope deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/secrets/list": {
+      "get": {
+        "operationId": "listSecrets",
+        "summary": "List secrets",
+        "description": "Lists all secrets in a scope",
+        "tags": ["Secrets"],
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of secrets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "secrets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "last_updated_timestamp": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/secrets/put": {
+      "post": {
+        "operationId": "putSecret",
+        "summary": "Put secret",
+        "description": "Creates or updates a secret",
+        "tags": ["Secrets"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["scope", "key", "string_value"],
+                "properties": {
+                  "scope": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "string_value": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret created or updated"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/secrets/delete": {
+      "post": {
+        "operationId": "deleteSecret",
+        "summary": "Delete secret",
+        "description": "Deletes a secret",
+        "tags": ["Secrets"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["scope", "key"],
+                "properties": {
+                  "scope": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/libraries/all-cluster-statuses": {
+      "get": {
+        "operationId": "listLibraryStatuses",
+        "summary": "List library statuses",
+        "description": "Get the status of libraries on all clusters",
+        "tags": ["Libraries"],
+        "responses": {
+          "200": {
+            "description": "Library statuses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statuses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/libraries/cluster-status": {
+      "get": {
+        "operationId": "getClusterLibraryStatuses",
+        "summary": "Get cluster library statuses",
+        "description": "Get the status of libraries on a specific cluster",
+        "tags": ["Libraries"],
+        "parameters": [
+          {
+            "name": "cluster_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Library statuses for cluster",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cluster_id": {
+                      "type": "string"
+                    },
+                    "library_statuses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/libraries/install": {
+      "post": {
+        "operationId": "installLibraries",
+        "summary": "Install libraries",
+        "description": "Installs libraries on a cluster",
+        "tags": ["Libraries"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["cluster_id", "libraries"],
+                "properties": {
+                  "cluster_id": {
+                    "type": "string"
+                  },
+                  "libraries": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Libraries installation initiated"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/libraries/uninstall": {
+      "post": {
+        "operationId": "uninstallLibraries",
+        "summary": "Uninstall libraries",
+        "description": "Uninstalls libraries from a cluster",
+        "tags": ["Libraries"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["cluster_id", "libraries"],
+                "properties": {
+                  "cluster_id": {
+                    "type": "string"
+                  },
+                  "libraries": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Libraries uninstallation initiated"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/instance-pools/list": {
+      "get": {
+        "operationId": "listInstancePools",
+        "summary": "List instance pools",
+        "description": "Lists all instance pools",
+        "tags": ["Instance Pools"],
+        "responses": {
+          "200": {
+            "description": "List of instance pools",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "instance_pools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instance_pool_id": {
+                            "type": "string"
+                          },
+                          "instance_pool_name": {
+                            "type": "string"
+                          },
+                          "min_idle_instances": {
+                            "type": "integer"
+                          },
+                          "max_capacity": {
+                            "type": "integer"
+                          },
+                          "idle_instance_autotermination_minutes": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/instance-pools/get": {
+      "get": {
+        "operationId": "getInstancePool",
+        "summary": "Get instance pool",
+        "description": "Gets information about an instance pool",
+        "tags": ["Instance Pools"],
+        "parameters": [
+          {
+            "name": "instance_pool_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Instance pool information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "instance_pool_id": {
+                      "type": "string"
+                    },
+                    "instance_pool_name": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/instance-pools/create": {
+      "post": {
+        "operationId": "createInstancePool",
+        "summary": "Create instance pool",
+        "description": "Creates a new instance pool",
+        "tags": ["Instance Pools"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["instance_pool_name", "node_type_id"],
+                "properties": {
+                  "instance_pool_name": {
+                    "type": "string"
+                  },
+                  "node_type_id": {
+                    "type": "string"
+                  },
+                  "min_idle_instances": {
+                    "type": "integer"
+                  },
+                  "max_capacity": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Instance pool created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "instance_pool_id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/instance-pools/delete": {
+      "post": {
+        "operationId": "deleteInstancePool",
+        "summary": "Delete instance pool",
+        "description": "Deletes an instance pool",
+        "tags": ["Instance Pools"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["instance_pool_id"],
+                "properties": {
+                  "instance_pool_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Instance pool deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/repos": {
+      "get": {
+        "operationId": "listRepos",
+        "summary": "List repos",
+        "description": "Lists all repos in the workspace",
+        "tags": ["Repos"],
+        "parameters": [
+          {
+            "name": "path_prefix",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of repos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "repos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "path": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "provider": {
+                            "type": "string"
+                          },
+                          "branch": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createRepo",
+        "summary": "Create repo",
+        "description": "Creates a new repo",
+        "tags": ["Repos"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url", "provider"],
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["gitHub", "gitLab", "azureDevOpsServices", "bitbucketCloud"]
+                  },
+                  "path": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Repo created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "path": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/repos/{repo_id}": {
+      "get": {
+        "operationId": "getRepo",
+        "summary": "Get repo",
+        "description": "Gets information about a repo",
+        "tags": ["Repos"],
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Repo information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateRepo",
+        "summary": "Update repo",
+        "description": "Updates a repo",
+        "tags": ["Repos"],
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "branch": {
+                    "type": "string"
+                  },
+                  "tag": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Repo updated"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteRepo",
+        "summary": "Delete repo",
+        "description": "Deletes a repo",
+        "tags": ["Repos"],
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Repo deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/sql/warehouses": {
+      "get": {
+        "operationId": "listSqlWarehouses",
+        "summary": "List SQL warehouses",
+        "description": "Lists all SQL warehouses",
+        "tags": ["SQL Warehouses"],
+        "responses": {
+          "200": {
+            "description": "List of SQL warehouses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "warehouses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "cluster_size": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSqlWarehouse",
+        "summary": "Create SQL warehouse",
+        "description": "Creates a new SQL warehouse",
+        "tags": ["SQL Warehouses"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "cluster_size"],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "cluster_size": {
+                    "type": "string",
+                    "enum": ["2X-Small", "X-Small", "Small", "Medium", "Large", "X-Large", "2X-Large", "3X-Large", "4X-Large"]
+                  },
+                  "max_num_clusters": {
+                    "type": "integer"
+                  },
+                  "auto_stop_mins": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SQL warehouse created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/sql/warehouses/{id}": {
+      "get": {
+        "operationId": "getSqlWarehouse",
+        "summary": "Get SQL warehouse",
+        "description": "Gets information about a SQL warehouse",
+        "tags": ["SQL Warehouses"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SQL warehouse information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSqlWarehouse",
+        "summary": "Delete SQL warehouse",
+        "description": "Deletes a SQL warehouse",
+        "tags": ["SQL Warehouses"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SQL warehouse deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/sql/warehouses/{id}/start": {
+      "post": {
+        "operationId": "startSqlWarehouse",
+        "summary": "Start SQL warehouse",
+        "description": "Starts a SQL warehouse",
+        "tags": ["SQL Warehouses"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SQL warehouse start initiated"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/sql/warehouses/{id}/stop": {
+      "post": {
+        "operationId": "stopSqlWarehouse",
+        "summary": "Stop SQL warehouse",
+        "description": "Stops a SQL warehouse",
+        "tags": ["SQL Warehouses"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SQL warehouse stop initiated"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.1/unity-catalog/catalogs": {
+      "get": {
+        "operationId": "listCatalogs",
+        "summary": "List catalogs",
+        "description": "Lists all Unity Catalog catalogs",
+        "tags": ["Unity Catalog"],
+        "responses": {
+          "200": {
+            "description": "List of catalogs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "catalogs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "comment": {
+                            "type": "string"
+                          },
+                          "owner": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createCatalog",
+        "summary": "Create catalog",
+        "description": "Creates a new Unity Catalog catalog",
+        "tags": ["Unity Catalog"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "comment": {
+                    "type": "string"
+                  },
+                  "properties": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Catalog created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.1/unity-catalog/catalogs/{name}": {
+      "get": {
+        "operationId": "getCatalog",
+        "summary": "Get catalog",
+        "description": "Gets information about a catalog",
+        "tags": ["Unity Catalog"],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catalog information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "comment": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteCatalog",
+        "summary": "Delete catalog",
+        "description": "Deletes a catalog",
+        "tags": ["Unity Catalog"],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catalog deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.1/unity-catalog/schemas": {
+      "get": {
+        "operationId": "listSchemas",
+        "summary": "List schemas",
+        "description": "Lists all schemas in a catalog",
+        "tags": ["Unity Catalog"],
+        "parameters": [
+          {
+            "name": "catalog_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of schemas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "schemas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "catalog_name": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSchema",
+        "summary": "Create schema",
+        "description": "Creates a new schema in a catalog",
+        "tags": ["Unity Catalog"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "catalog_name"],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "catalog_name": {
+                    "type": "string"
+                  },
+                  "comment": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Schema created"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.1/unity-catalog/tables": {
+      "get": {
+        "operationId": "listTables",
+        "summary": "List tables",
+        "description": "Lists all tables in a schema",
+        "tags": ["Unity Catalog"],
+        "parameters": [
+          {
+            "name": "catalog_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "schema_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of tables",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tables": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "catalog_name": {
+                            "type": "string"
+                          },
+                          "schema_name": {
+                            "type": "string"
+                          },
+                          "table_type": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.1/unity-catalog/tables/{full_name}": {
+      "get": {
+        "operationId": "getTable",
+        "summary": "Get table",
+        "description": "Gets information about a table",
+        "tags": ["Unity Catalog"],
+        "parameters": [
+          {
+            "name": "full_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Full name in format catalog.schema.table"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Table information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "catalog_name": {
+                      "type": "string"
+                    },
+                    "schema_name": {
+                      "type": "string"
+                    },
+                    "table_type": {
+                      "type": "string"
+                    },
+                    "columns": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/1.2/contexts/create": {
+      "post": {
+        "operationId": "createExecutionContext",
+        "summary": "Create an execution context",
+        "description": "Creates an execution context for running commands on a cluster",
+        "tags": ["Command Execution"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["clusterId", "language"],
+                "properties": {
+                  "clusterId": {
+                    "type": "string",
+                    "description": "The cluster ID to create the context on"
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": ["python", "scala", "sql", "r"],
+                    "description": "The language of the execution context"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Execution context created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The ID of the execution context"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/1.2/commands/execute": {
+      "post": {
+        "operationId": "executeCommand",
+        "summary": "Execute a command",
+        "description": "Executes a command in an execution context",
+        "tags": ["Command Execution"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["clusterId", "contextId", "language", "command"],
+                "properties": {
+                  "clusterId": {
+                    "type": "string",
+                    "description": "The cluster ID"
+                  },
+                  "contextId": {
+                    "type": "string",
+                    "description": "The execution context ID"
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": ["python", "scala", "sql", "r"],
+                    "description": "The language of the command"
+                  },
+                  "command": {
+                    "type": "string",
+                    "description": "The command to execute"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Command executed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The command ID"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/1.2/commands/status": {
+      "get": {
+        "operationId": "getCommandStatus",
+        "summary": "Get command status",
+        "description": "Gets the status of a command execution",
+        "tags": ["Command Execution"],
+        "parameters": [
+          {
+            "name": "clusterId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The cluster ID"
+          },
+          {
+            "name": "contextId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The execution context ID"
+          },
+          {
+            "name": "commandId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The command ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/vector-search/endpoints": {
+      "get": {
+        "operationId": "listVectorSearchEndpoints",
+        "summary": "List all vector search endpoints",
+        "description": "List all vector search endpoints in the workspace",
+        "tags": ["Vector Search"],
+        "parameters": [
+          {
+            "name": "page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of vector search endpoints",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "endpoints": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/VectorSearchEndpoint"
+                      }
+                    },
+                    "next_page_token": {
+                      "type": "string",
+                      "description": "Token for next page of results"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createVectorSearchEndpoint",
+        "summary": "Create a vector search endpoint",
+        "description": "Create a new vector search endpoint",
+        "tags": ["Vector Search"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "endpoint_type"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the vector search endpoint"
+                  },
+                  "endpoint_type": {
+                    "type": "string",
+                    "enum": ["STANDARD"],
+                    "description": "Type of endpoint"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Endpoint created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VectorSearchEndpoint"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/vector-search/endpoints/{endpoint_name}": {
+      "get": {
+        "operationId": "getVectorSearchEndpoint",
+        "summary": "Get vector search endpoint",
+        "description": "Get details for a single vector search endpoint",
+        "tags": ["Vector Search"],
+        "parameters": [
+          {
+            "name": "endpoint_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the endpoint"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endpoint details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VectorSearchEndpoint"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteVectorSearchEndpoint",
+        "summary": "Delete vector search endpoint",
+        "description": "Delete a vector search endpoint",
+        "tags": ["Vector Search"],
+        "parameters": [
+          {
+            "name": "endpoint_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the vector search endpoint"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endpoint deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/2.0/vector-search/indexes": {
+      "get": {
+        "operationId": "listVectorSearchIndexes",
+        "summary": "List vector search indexes",
+        "description": "List all indexes in the given endpoint",
+        "tags": ["Vector Search"],
+        "parameters": [
+          {
+            "name": "endpoint_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the endpoint"
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of vector search indexes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "vector_indexes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/VectorSearchIndex"
+                      }
+                    },
+                    "next_page_token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createVectorSearchIndex",
+        "summary": "Create a vector search index",
+        "description": "Create a new vector search index",
+        "tags": ["Vector Search"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVectorIndexRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Index created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VectorSearchIndex"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/2.0/vector-search/indexes/{index_name}": {
+      "get": {
+        "operationId": "getVectorSearchIndex",
+        "summary": "Get vector search index",
+        "description": "Get an index",
+        "tags": ["Vector Search"],
+        "parameters": [
+          {
+            "name": "index_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the index"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Index details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VectorSearchIndex"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteVectorSearchIndex",
+        "summary": "Delete vector search index",
+        "description": "Delete an index",
+        "tags": ["Vector Search"],
+        "parameters": [
+          {
+            "name": "index_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the index"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Index deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/2.0/vector-search/indexes/{index_name}/query": {
+      "post": {
+        "operationId": "queryVectorSearchIndex",
+        "summary": "Query a vector search index",
+        "description": "Query the specified vector index using text or vector similarity search",
+        "tags": ["Vector Search"],
+        "parameters": [
+          {
+            "name": "index_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the vector index to query"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VectorSearchQueryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Query results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VectorSearchQueryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/2.0/vector-search/indexes/{index_name}/upsert-data": {
+      "post": {
+        "operationId": "upsertVectorSearchData",
+        "summary": "Upsert data into vector index",
+        "description": "Upsert data into a Direct Vector Access Index",
+        "tags": ["Vector Search"],
+        "parameters": [
+          {
+            "name": "index_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the vector index (must be Direct Vector Access Index)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["inputs_json"],
+                "properties": {
+                  "inputs_json": {
+                    "type": "string",
+                    "description": "JSON string representing the data to be upserted"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upsert operation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["SUCCESS", "PARTIAL_SUCCESS", "FAILURE"]
+                    },
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "success_row_count": {
+                          "type": "integer"
+                        },
+                        "failed_primary_keys": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/2.0/vector-search/indexes/{index_name}/sync": {
+      "post": {
+        "operationId": "syncVectorSearchIndex",
+        "summary": "Synchronize vector search index",
+        "description": "Trigger synchronization for a Delta Sync Index",
+        "tags": ["Vector Search"],
+        "parameters": [
+          {
+            "name": "index_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the vector index to synchronize (must be Delta Sync Index)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Synchronization triggered successfully"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "OAuth",
+        "description": "OAuth 2.0 token for user or service principal authentication"
+      },
+      "personalAccessToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Databricks personal access token (PAT)"
+      }
+    },
+    "schemas": {
+      "ClusterInfo": {
+        "type": "object",
+        "properties": {
+          "cluster_id": {
+            "type": "string",
+            "description": "Canonical identifier for the cluster"
+          },
+          "cluster_name": {
+            "type": "string",
+            "description": "Cluster name requested by the user"
+          },
+          "spark_version": {
+            "type": "string",
+            "description": "The Spark version of the cluster"
+          },
+          "node_type_id": {
+            "type": "string",
+            "description": "The node type of the cluster"
+          },
+          "driver_node_type_id": {
+            "type": "string",
+            "description": "The node type of the Spark driver"
+          },
+          "num_workers": {
+            "type": "integer",
+            "description": "Number of worker nodes"
+          },
+          "autoscale": {
+            "type": "object",
+            "properties": {
+              "min_workers": {
+                "type": "integer"
+              },
+              "max_workers": {
+                "type": "integer"
+              }
+            }
+          },
+          "state": {
+            "type": "string",
+            "enum": ["PENDING", "RUNNING", "RESTARTING", "RESIZING", "TERMINATING", "TERMINATED", "ERROR", "UNKNOWN"],
+            "description": "State of the cluster"
+          },
+          "state_message": {
+            "type": "string",
+            "description": "A message associated with the most recent state transition"
+          },
+          "start_time": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Time when the cluster driver started (Unix timestamp in milliseconds)"
+          },
+          "terminated_time": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Time when the cluster was terminated (Unix timestamp in milliseconds)"
+          },
+          "creator_user_name": {
+            "type": "string",
+            "description": "Username of cluster creator"
+          }
+        }
+      },
+      "CreateClusterRequest": {
+        "type": "object",
+        "required": ["cluster_name", "spark_version", "node_type_id"],
+        "properties": {
+          "cluster_name": {
+            "type": "string",
+            "description": "Cluster name requested by the user"
+          },
+          "spark_version": {
+            "type": "string",
+            "description": "The Spark version of the cluster (e.g., '13.3.x-scala2.12')"
+          },
+          "node_type_id": {
+            "type": "string",
+            "description": "The node type for worker nodes"
+          },
+          "driver_node_type_id": {
+            "type": "string",
+            "description": "The node type of the Spark driver (defaults to node_type_id)"
+          },
+          "num_workers": {
+            "type": "integer",
+            "description": "Number of worker nodes (conflicts with autoscale)"
+          },
+          "autoscale": {
+            "type": "object",
+            "properties": {
+              "min_workers": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max_workers": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": ["min_workers", "max_workers"]
+          },
+          "autotermination_minutes": {
+            "type": "integer",
+            "description": "Automatically terminate after this many minutes of inactivity"
+          },
+          "spark_conf": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Spark configuration properties"
+          },
+          "spark_env_vars": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Environment variables for Spark processes"
+          },
+          "custom_tags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Additional tags for cluster resources"
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The canonical identifier for this job"
+          },
+          "creator_user_name": {
+            "type": "string",
+            "description": "The creator username"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/JobSettings"
+          },
+          "created_time": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Creation time (Unix timestamp in milliseconds)"
+          }
+        }
+      },
+      "JobSettings": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "An optional name for the job"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Task"
+            },
+            "description": "A list of task specifications to be executed by this job"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "description": "Timeout in seconds for the entire job"
+          },
+          "max_concurrent_runs": {
+            "type": "integer",
+            "description": "Maximum allowed number of concurrent runs"
+          },
+          "schedule": {
+            "type": "object",
+            "properties": {
+              "quartz_cron_expression": {
+                "type": "string"
+              },
+              "timezone_id": {
+                "type": "string"
+              },
+              "pause_status": {
+                "type": "string",
+                "enum": ["PAUSED", "UNPAUSED"]
+              }
+            }
+          }
+        }
+      },
+      "CreateJobRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "An optional name for the job"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Task"
+            },
+            "description": "A list of task specifications"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "description": "Timeout for the entire job"
+          },
+          "max_concurrent_runs": {
+            "type": "integer",
+            "default": 1,
+            "description": "Maximum concurrent runs"
+          },
+          "schedule": {
+            "type": "object",
+            "properties": {
+              "quartz_cron_expression": {
+                "type": "string"
+              },
+              "timezone_id": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Task": {
+        "type": "object",
+        "required": ["task_key"],
+        "properties": {
+          "task_key": {
+            "type": "string",
+            "description": "A unique name for the task"
+          },
+          "description": {
+            "type": "string",
+            "description": "An optional description for this task"
+          },
+          "notebook_task": {
+            "type": "object",
+            "properties": {
+              "notebook_path": {
+                "type": "string"
+              },
+              "base_parameters": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "python_wheel_task": {
+            "type": "object",
+            "properties": {
+              "package_name": {
+                "type": "string"
+              },
+              "entry_point": {
+                "type": "string"
+              },
+              "parameters": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "spark_python_task": {
+            "type": "object",
+            "properties": {
+              "python_file": {
+                "type": "string"
+              },
+              "parameters": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "existing_cluster_id": {
+            "type": "string",
+            "description": "ID of an existing cluster to run this task on"
+          },
+          "new_cluster": {
+            "$ref": "#/components/schemas/CreateClusterRequest"
+          },
+          "libraries": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Libraries to be installed on the cluster"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "description": "Timeout for this task"
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "task_key": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Task dependencies"
+          }
+        }
+      },
+      "Run": {
+        "type": "object",
+        "properties": {
+          "run_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The canonical identifier for the run"
+          },
+          "job_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The job ID"
+          },
+          "run_name": {
+            "type": "string",
+            "description": "An optional name for the run"
+          },
+          "state": {
+            "type": "object",
+            "properties": {
+              "life_cycle_state": {
+                "type": "string",
+                "enum": ["PENDING", "RUNNING", "TERMINATING", "TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
+              },
+              "result_state": {
+                "type": "string",
+                "enum": ["SUCCESS", "FAILED", "TIMEDOUT", "CANCELED"]
+              },
+              "state_message": {
+                "type": "string"
+              }
+            }
+          },
+          "start_time": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Start time (Unix timestamp in milliseconds)"
+          },
+          "end_time": {
+            "type": "integer",
+            "format": "int64",
+            "description": "End time (Unix timestamp in milliseconds)"
+          },
+          "setup_duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Setup duration in milliseconds"
+          },
+          "execution_duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Execution duration in milliseconds"
+          },
+          "cleanup_duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Cleanup duration in milliseconds"
+          }
+        }
+      },
+      "WorkspaceObject": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The absolute path of the object"
+          },
+          "object_type": {
+            "type": "string",
+            "enum": ["NOTEBOOK", "DIRECTORY", "LIBRARY", "FILE"],
+            "description": "The type of the object"
+          },
+          "language": {
+            "type": "string",
+            "enum": ["SCALA", "PYTHON", "SQL", "R"],
+            "description": "The language (for notebooks)"
+          },
+          "object_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unique identifier for the object"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Creation time (Unix timestamp in milliseconds)"
+          },
+          "modified_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Last modified time (Unix timestamp in milliseconds)"
+          }
+        }
+      },
+      "CommandStatus": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Command ID"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Queued", "Running", "Finished", "Cancelled", "Error"],
+            "description": "Command execution status"
+          },
+          "results": {
+            "type": "object",
+            "properties": {
+              "resultType": {
+                "type": "string",
+                "enum": ["text", "table", "image", "error"]
+              },
+              "data": {
+                "description": "Result data (type varies)"
+              },
+              "summary": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "VectorSearchEndpoint": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the vector search endpoint"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the endpoint"
+          },
+          "endpoint_type": {
+            "type": "string",
+            "enum": ["STANDARD"],
+            "description": "Type of endpoint"
+          },
+          "endpoint_status": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": ["PROVISIONING", "ONLINE", "OFFLINE"],
+                "description": "Current state of the endpoint"
+              },
+              "message": {
+                "type": "string",
+                "description": "Status message"
+              }
+            }
+          },
+          "creator": {
+            "type": "string",
+            "description": "Creator of the endpoint"
+          },
+          "creation_timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Timestamp of endpoint creation"
+          },
+          "last_updated_timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Timestamp of last update"
+          },
+          "last_updated_user": {
+            "type": "string",
+            "description": "User who last updated the endpoint"
+          },
+          "num_indexes": {
+            "type": "integer",
+            "description": "Number of indexes on the endpoint"
+          }
+        }
+      },
+      "VectorSearchIndex": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the index"
+          },
+          "primary_key": {
+            "type": "string",
+            "description": "Primary key of the index"
+          },
+          "endpoint_name": {
+            "type": "string",
+            "description": "Name of the endpoint associated with the index"
+          },
+          "index_type": {
+            "type": "string",
+            "enum": ["DELTA_SYNC", "DIRECT_ACCESS"],
+            "description": "Type of vector search index"
+          },
+          "creator": {
+            "type": "string",
+            "description": "User who created the index"
+          },
+          "delta_sync_index_spec": {
+            "type": "object",
+            "description": "Specification for Delta Sync Index",
+            "properties": {
+              "source_table": {
+                "type": "string",
+                "description": "Source Delta table name"
+              },
+              "pipeline_type": {
+                "type": "string",
+                "enum": ["TRIGGERED", "CONTINUOUS"],
+                "description": "Pipeline type for syncing"
+              },
+              "pipeline_id": {
+                "type": "string",
+                "description": "ID of the DLT pipeline"
+              },
+              "embedding_source_columns": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Column name"
+                    },
+                    "embedding_model_endpoint_name": {
+                      "type": "string",
+                      "description": "Embedding model endpoint"
+                    }
+                  }
+                }
+              },
+              "columns_to_sync": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Columns to sync from source table"
+              }
+            }
+          },
+          "direct_access_index_spec": {
+            "type": "object",
+            "description": "Specification for Direct Vector Access Index",
+            "properties": {
+              "embedding_dimension": {
+                "type": "integer",
+                "description": "Dimension of the embedding vectors"
+              },
+              "schema_json": {
+                "type": "string",
+                "description": "JSON schema for the index"
+              }
+            }
+          },
+          "status": {
+            "type": "object",
+            "properties": {
+              "ready": {
+                "type": "boolean",
+                "description": "Whether the index is ready"
+              },
+              "message": {
+                "type": "string",
+                "description": "Status message"
+              },
+              "indexed_row_count": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Number of indexed rows"
+              },
+              "index_url": {
+                "type": "string",
+                "description": "URL for the index"
+              }
+            }
+          }
+        }
+      },
+      "CreateVectorIndexRequest": {
+        "type": "object",
+        "required": ["name", "endpoint_name", "primary_key", "index_type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the index"
+          },
+          "endpoint_name": {
+            "type": "string",
+            "description": "Name of the endpoint to be used for serving the index"
+          },
+          "primary_key": {
+            "type": "string",
+            "description": "Primary key of the index"
+          },
+          "index_type": {
+            "type": "string",
+            "enum": ["DELTA_SYNC", "DIRECT_ACCESS"],
+            "description": "Type of vector search index"
+          },
+          "delta_sync_index_spec": {
+            "type": "object",
+            "description": "Required if index_type is DELTA_SYNC",
+            "properties": {
+              "source_table": {
+                "type": "string",
+                "description": "Source Delta table name"
+              },
+              "pipeline_type": {
+                "type": "string",
+                "enum": ["TRIGGERED", "CONTINUOUS"],
+                "default": "TRIGGERED",
+                "description": "Pipeline type for syncing"
+              },
+              "embedding_source_columns": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "embedding_model_endpoint_name": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "columns_to_sync": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "direct_access_index_spec": {
+            "type": "object",
+            "description": "Required if index_type is DIRECT_ACCESS",
+            "properties": {
+              "embedding_dimension": {
+                "type": "integer",
+                "description": "Dimension of the embedding vectors"
+              },
+              "schema_json": {
+                "type": "string",
+                "description": "JSON schema for the index"
+              }
+            }
+          }
+        }
+      },
+      "VectorSearchQueryRequest": {
+        "type": "object",
+        "required": ["columns"],
+        "properties": {
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of column names to include in the response"
+          },
+          "query_text": {
+            "type": "string",
+            "description": "Query text (required for Delta Sync Index using model endpoint)"
+          },
+          "query_vector": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "description": "Query vector (required for Direct Vector Access Index)"
+          },
+          "num_results": {
+            "type": "integer",
+            "default": 10,
+            "description": "Number of results to return"
+          },
+          "query_type": {
+            "type": "string",
+            "enum": ["ANN", "HYBRID"],
+            "default": "ANN",
+            "description": "Query type (ANN or HYBRID)"
+          },
+          "filters_json": {
+            "type": "string",
+            "description": "JSON string representing query filters"
+          },
+          "score_threshold": {
+            "type": "number",
+            "format": "double",
+            "default": 0.0,
+            "description": "Threshold for approximate nearest neighbor search"
+          }
+        }
+      },
+      "VectorSearchQueryResponse": {
+        "type": "object",
+        "properties": {
+          "manifest": {
+            "type": "object",
+            "properties": {
+              "column_count": {
+                "type": "integer",
+                "description": "Number of columns in results"
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "row_count": {
+                "type": "integer",
+                "description": "Number of rows in results"
+              },
+              "data_array": {
+                "type": "array",
+                "description": "Array of result rows"
+              }
+            }
+          },
+          "next_page_token": {
+            "type": "string",
+            "description": "Token for next page of results"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error_code": {
+            "type": "string",
+            "description": "Error code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request - invalid parameters",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized - invalid or missing credentials",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "RateLimitExceeded": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Clusters",
+      "description": "Operations for managing Databricks clusters"
+    },
+    {
+      "name": "Jobs",
+      "description": "Operations for managing and running Databricks jobs"
+    },
+    {
+      "name": "Workspace",
+      "description": "Operations for managing workspace objects (notebooks, directories)"
+    },
+    {
+      "name": "Command Execution",
+      "description": "Operations for executing commands on clusters"
+    },
+    {
+      "name": "Vector Search",
+      "description": "Operations for managing vector search endpoints and indexes, and performing similarity searches"
+    },
+    {
+      "name": "DBFS",
+      "description": "Operations for managing files in Databricks File System"
+    },
+    {
+      "name": "Secrets",
+      "description": "Operations for managing secrets and secret scopes"
+    },
+    {
+      "name": "Libraries",
+      "description": "Operations for installing and managing libraries on clusters"
+    },
+    {
+      "name": "Instance Pools",
+      "description": "Operations for managing instance pools"
+    },
+    {
+      "name": "Repos",
+      "description": "Operations for managing Git repository integrations"
+    },
+    {
+      "name": "SQL Warehouses",
+      "description": "Operations for managing SQL warehouses"
+    },
+    {
+      "name": "Unity Catalog",
+      "description": "Operations for managing Unity Catalog catalogs, schemas, and tables"
+    }
+  ]
+}
