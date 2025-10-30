@@ -4,6 +4,8 @@
 
 Enterprise-ready integration enabling Azure AI Foundry agents to manage and interact with Azure Databricks workspaces through a comprehensive REST API.
 
+![Azure AI Foundry and Databricks Integration Diagram](.img/architecture-pat.drawio.png)
+
 ## 🚀 Quick Links
 
 - **[Quick Start Guide](docs/QUICKSTART.md)** - Get up and running in minutes
